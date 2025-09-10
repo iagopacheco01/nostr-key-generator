@@ -34,6 +34,6 @@ fs.writeFileSync(privateKeyPath, nsec, { mode: 0o600 });
 // Save npub (publicly readable)
 fs.writeFileSync(npubPath, npub, { mode: 0o644 });
 
-console.log(`\nChaves salvas em:\nPrivate key: ${privateKeyPath}\nPublic npub: ${npubPath}`);
+console.log(`\nChaves salvas em: (Keys saved to:)\nPrivate key: ${privateKeyPath}\nPublic npub: ${npubPath}`);
 
 
