@@ -4,18 +4,18 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-// Diretório do usuário
+// User directory
 const homeDir = os.homedir();
 
-// Gerar private key aleatória (32 bytes em Uint8Array)
+// Generate random private key (32 bytes in Uint8Array)
 const privateKeyBytes = randomBytes(32);
 const privateKeyHex = Buffer.from(privateKeyBytes).toString('hex');
 
-// Gerar chave pública
+// Generate public key
 const publicKeyBytes = getPublicKey(privateKeyBytes);
 const publicKeyHex = Buffer.from(publicKeyBytes).toString('hex');
 
-// Gerar npub e nsec legíveis
+// Generate readable npub and nsec
 const nsec = nip19.nsecEncode(privateKeyBytes);
 const npub = nip19.npubEncode(publicKeyBytes);
 
@@ -24,14 +24,14 @@ console.log("Public Key (hex):", publicKeyHex);
 console.log("nsec:", nsec);
 console.log("npub:", npub);
 
-// Caminhos dos arquivos
+// File paths
 const privateKeyPath = path.join(homeDir, 'private.key');
 const npubPath = path.join(homeDir, 'public.npub');
 
-// Salvar private key (apenas leitura para o usuário)
+// Save private key (read-only for user)
 fs.writeFileSync(privateKeyPath, nsec, { mode: 0o600 });
 
-// Salvar npub (legível publicamente)
+// Save npub (publicly readable)
 fs.writeFileSync(npubPath, npub, { mode: 0o644 });
 
 console.log(`\nChaves salvas em:\nPrivate key: ${privateKeyPath}\nPublic npub: ${npubPath}`);
