@@ -4,6 +4,11 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
+// ANSI escape sequences for colors and styles
+const green = '\x1b[32m';
+const cyan = '\x1b[36m';
+const reset = '\x1b[0m'; // Reseta todas as configurações
+
 // User directory
 const homeDir = os.homedir();
 
@@ -19,10 +24,10 @@ const publicKeyHex = Buffer.from(publicKeyBytes).toString('hex');
 const nsec = nip19.nsecEncode(privateKeyBytes);
 const npub = nip19.npubEncode(publicKeyBytes);
 
-console.log("Private Key (hex):", privateKeyHex);
-console.log("Public Key (hex):", publicKeyHex);
-console.log("nsec:", nsec);
-console.log("npub:", npub);
+console.log(`${cyan}Private Key (hex):${reset} ${privateKeyHex}`);
+console.log(`${cyan}Public Key (hex):${reset} ${publicKeyHex}`);
+console.log(`${cyan}nsec:${reset} ${nsec}`);
+console.log(`${cyan}npub:${reset} ${npub}`);
 
 // File paths
 const privateKeyPath = path.join(homeDir, 'private.key');
@@ -34,6 +39,8 @@ fs.writeFileSync(privateKeyPath, nsec, { mode: 0o600 });
 // Save npub (publicly readable)
 fs.writeFileSync(npubPath, npub, { mode: 0o644 });
 
-console.log(`\nChaves salvas em: (Keys saved to:)\nPrivate key: ${privateKeyPath}\nPublic npub: ${npubPath}`);
+console.log(`\n${green}Chaves salvas em: (Keys saved to:)${reset}`);
+console.log(`${cyan}Private key:${reset} ${privateKeyPath}`);
+console.log(`${cyan}Public npub:${reset} ${npubPath}`);
 
 
