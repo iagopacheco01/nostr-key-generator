@@ -12,6 +12,22 @@ The keys are generated in the following formats:
 
 The keys are automatically saved as files in the user's directory.
 
+✨ Features
+
+    Interactive Menu: Easily navigate through all available options.
+
+    Multi-language Support: Full support for both English and Portuguese.
+
+    Random Generation: Create a new, completely random key pair.
+
+    Seed Phrase Generation (BIP39): Generate keys from a 12-word mnemonic seed phrase for easy backup and recovery.
+
+    Vanity Key Generation: Find a key pair with a custom prefix (e.g., npub1iago...).
+
+    Key Verification: Validate any existing nsec or npub key.
+
+    Secure Saving: Generated keys are automatically saved with secure file permissions in your user's home directory.
+
 ---
 
 ## 📦 Prerequisites
@@ -69,9 +85,13 @@ nostr-key-generator/
 
 ## 📝 Notes
 
-- Never share your private keys.
-- Use the `nsec` format to import keys into compatible Nostr clients.
-- The `npub` format is safe to share publicly.
+- Your 12-word seed phrase is your ultimate backup. Treat it with the same security as your private key. Store it offline and never share it.
+
+- Generating vanity keys is computationally intensive. Prefixes longer than 4-5 characters can take a very long time to find.
+
+- While the tool outputs hexadecimal keys, the nsec format is the modern standard for importing private keys into most Nostr clients.
+
+- The npub format is your public address and is safe to share publicly.
 
 ## 📌 Quick Commands
 
