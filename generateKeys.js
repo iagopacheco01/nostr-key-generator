@@ -1,99 +1,101 @@
 // ==========================================================
 //
 //  NostraKey - A Command-Line Nostr Key Tool
-//  Version: 1.0.1
-//  Description: A comprehensive command-line tool for
-//  managing Nostr keys, including generation, verification,
-//  and secure saving.
-//  Author: Iago Pacheco
-//  License: MIT 
+//  Version: 1.0.3
+//  Description: CLI tool for generating, verifying and saving
+//  Nostr keys (bech32 + hex). Secure defaults for saved files.
+//  Author: Iago Pacheco (corrected)
+//  License: MIT
 //
 // ==========================================================
 
 import inquirer from 'inquirer';
-// FINAL VERSION: This import is compatible with nostr-tools@1.17.0
 import { getPublicKey, nip19, nip06 } from 'nostr-tools';
 import { randomBytes } from 'crypto';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-// --- HOME: CONSTANTS AND CONFIGURATION ---
+// --- COLORS & CONFIG ---
 const green = '\x1b[32m', cyan = '\x1b[36m', red = '\x1b[31m', yellow = '\x1b[33m', redBold = '\x1b[31;1m', reset = '\x1b[0m';
 const homeDir = os.homedir();
+
 const locales = {
   pt: {
-    "lang_choice":"Escolha seu idioma:",
-    "menu_title":"O que você gostaria de fazer?",
-    "options":{
-      "generate":"1) Gerar um novo par de chaves (aleatório)",
-      "generate_seed":"2) Gerar chaves de uma nova SEED (BIP39)",
-      "vanity":"3) Gerar chaves com um prefixo (vanity key)",
-      "verify":"4) Verificar uma chave (npub/nsec)",
-      "exit":"5) Sair"
+    lang_choice: 'Escolha seu idioma:',
+    menu_title: 'O que você gostaria de fazer?',
+    options: {
+      generate: '1) Gerar um novo par de chaves (aleatório)',
+      generate_seed: '2) Gerar chaves de uma nova SEED (BIP39)',
+      vanity: '3) Gerar chaves com um prefixo (vanity key)',
+      verify: '4) Verificar uma chave (npub/nsec)',
+      exit: '5) Sair'
     },
-    "generate_success":"Chaves geradas e salvas com sucesso!",
-    "private_key_hex":"Chave Privada (hex)",
-    "public_key_hex":"Chave Pública (hex)",
-    "nsec":"nsec",
-    "npub":"npub",
-    "keys_saved_to":"Chaves salvas em:",
-    "private_key_path":"Chave privada",
-    "public_npub_path":"Npub público",
-    "seed_phrase_title":"Sua nova seed phrase de 12 palavras:",
-    "seed_warning":"IMPORTANTE: Anote estas palavras em ordem e guarde-as em um local seguro. Elas são a única forma de recuperar suas chaves.",
-    "vanity_prompt":"Digite o prefixo desejado (ex: iago, satoshi). Quanto mais longo, mais demorado:",
-    "vanity_searching":"Procurando por um npub que comece com '{}'... Isso pode levar muito tempo.",
-    "vanity_attempts":"Tentativas",
-    "vanity_found":"Chave encontrada após {} tentativas!",
-    "vanity_validate":"Prefixo só pode conter letras minúsculas e números.",
-    "verify_prompt":"Insira a chave (npub ou nsec) para verificar:",
-    "verify_valid":"A chave é VÁLIDA.",
-    "verify_type":"Tipo",
-    "verify_hex":"Valor (hex)",
-    "verify_invalid":"ERRO: A chave fornecida é INVÁLIDA ou está em um formato incorreto.",
-    "exit_message":"Saindo. Até logo!"
+    generate_success: 'Chaves geradas e salvas com sucesso!',
+    private_key_hex: 'Chave Privada (hex)',
+    public_key_hex: 'Chave Pública (hex)',
+    nsec: 'nsec',
+    npub: 'npub',
+    keys_saved_to: 'Chaves salvas em:',
+    private_key_path: 'Chave privada (nsec)',
+    private_hex_path: 'Chave privada (hex)',
+    public_npub_path: 'Npub público',
+    public_hex_path: 'Chave pública (hex)',
+    seed_phrase_title: 'Sua nova seed phrase de 12 palavras:',
+    seed_warning: 'IMPORTANTE: Anote estas palavras em ordem e guarde-as em um local seguro. Elas são a única forma de recuperar suas chaves.',
+    vanity_prompt: "Digite o prefixo desejado (ex: iago). Quanto maior, mais demorado:",
+    vanity_searching: "Procurando por um npub que comece com '{}'... Isso pode levar muito tempo.",
+    vanity_attempts: 'Tentativas',
+    vanity_found: 'Chave encontrada após {} tentativas!',
+    vanity_validate: 'Prefixo só pode conter letras minúsculas e números.',
+    verify_prompt: 'Insira a chave (npub ou nsec) para verificar:',
+    verify_valid: 'A chave é VÁLIDA.',
+    verify_type: 'Tipo',
+    verify_hex: 'Valor (hex)',
+    verify_invalid: 'ERRO: A chave fornecida é INVÁLIDA ou está em um formato incorreto.',
+    exit_message: 'Saindo. Até logo!'
   },
   en: {
-    "lang_choice":"Choose your language:",
-    "menu_title":"What would you like to do?",
-    "options":{
-      "generate":"1) Generate a new key pair (random)",
-      "generate_seed":"2) Generate keys from a new SEED (BIP39)",
-      "vanity":"3) Generate a key with a prefix (vanity key)",
-      "verify":"4) Verify a key (npub/nsec)",
-      "exit":"5) Exit"
+    lang_choice: 'Choose your language:',
+    menu_title: 'What would you like to do?',
+    options: {
+      generate: '1) Generate a new key pair (random)',
+      generate_seed: '2) Generate keys from a new SEED (BIP39)',
+      vanity: '3) Generate a key with a prefix (vanity key)',
+      verify: '4) Verify a key (npub/nsec)',
+      exit: '5) Exit'
     },
-    "generate_success":"Keys generated and saved successfully!",
-    "private_key_hex":"Private Key (hex)",
-    "public_key_hex":"Public Key (hex)",
-    "nsec":"nsec",
-    "npub":"npub",
-    "keys_saved_to":"Keys saved to:",
-    "private_key_path":"Private key",
-    "public_npub_path":"Public npub",
-    "seed_phrase_title":"Your new 12-word seed phrase:",
-    "seed_warning":"IMPORTANT: Write these words down in order and store them in a safe place. They are the only way to recover your keys.",
-    "vanity_prompt":"Enter the desired prefix (e.g., iago, satoshi). The longer it is, the longer it takes:",
-    "vanity_searching":"Searching for an npub starting with '{}'... This may take a very long time.",
-    "vanity_attempts":"Attempts",
-    "vanity_found":"Key found after {} attempts!",
-    "vanity_validate":"Prefix can only contain lowercase letters and numbers.",
-    "verify_prompt":"Enter the key (npub or nsec) to verify:",
-    "verify_valid":"The key is VALID.",
-    "verify_type":"Type",
-    "verify_hex":"Value (hex)",
-    "verify_invalid":"ERROR: The provided key is INVALID or in a wrong format.",
-    "exit_message":"Exiting. Goodbye!"
+    generate_success: 'Keys generated and saved successfully!',
+    private_key_hex: 'Private Key (hex)',
+    public_key_hex: 'Public Key (hex)',
+    nsec: 'nsec',
+    npub: 'npub',
+    keys_saved_to: 'Keys saved to:',
+    private_key_path: 'Private key (nsec)',
+    private_hex_path: 'Private key (hex)',
+    public_npub_path: 'Public npub',
+    public_hex_path: 'Public key (hex)',
+    seed_phrase_title: 'Your new 12-word seed phrase:',
+    seed_warning: 'IMPORTANT: Write these words down in order and store them in a safe place. They are the only way to recover your keys.',
+    vanity_prompt: 'Enter the desired prefix (e.g., iago, satoshi). The longer it is, the longer it takes:',
+    vanity_searching: "Searching for an npub starting with '{}'... This may take a very long time.",
+    vanity_attempts: 'Attempts',
+    vanity_found: 'Key found after {} attempts!',
+    vanity_validate: 'Prefix can only contain lowercase letters and numbers.',
+    verify_prompt: 'Enter the key (npub or nsec) to verify:',
+    verify_valid: 'The key is VALID.',
+    verify_type: 'Type',
+    verify_hex: 'Value (hex)',
+    verify_invalid: 'ERROR: The provided key is INVALID or in a wrong format.',
+    exit_message: 'Exiting. Goodbye!'
   }
 };
+
 let t = locales.en;
 
 // --- HELPERS ---
 function toHexIfNeeded(value) {
-  // retorna string hex se value for Buffer/Uint8Array; caso contrário retorna string original
   if (typeof value === 'string') return value;
-  // Buffer.isBuffer check + Uint8Array detection
   if (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) return Buffer.from(value).toString('hex');
   if (value instanceof Uint8Array || Array.isArray(value)) return Buffer.from(value).toString('hex');
   return String(value);
@@ -104,13 +106,33 @@ function ensureMnemonicString(m) {
   return String(m);
 }
 
+function safeWriteFileSync(filePath, content, mode = 0o600) {
+  // cria pasta se necessário (no caso do usuário ter homeDir especial)
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+  fs.writeFileSync(filePath, content, { mode });
+}
+
 // --- LOGIC FUNCTIONS ---
-function saveKeys(nsec, npub) {
-  const privateKeyPath = path.join(homeDir, 'private.key'); // contém nsec (bech32) por conveniência
+function saveKeys(nsec, npub, privateKeyHex, publicKeyHex) {
+  const privateKeyPath = path.join(homeDir, 'private.key'); // nsec (bech32)
+  const privateHexPath = path.join(homeDir, 'private.hex'); // private key hex (sensitive)
   const npubPath = path.join(homeDir, 'public.npub');
-  fs.writeFileSync(privateKeyPath, nsec, { mode: 0o600 });
-  fs.writeFileSync(npubPath, npub, { mode: 0o644 });
-  console.log(`\n${green}${t.keys_saved_to}${reset}\n${cyan}${t.private_key_path}:${reset} ${privateKeyPath}\n${cyan}${t.public_npub_path}:${reset} ${npubPath}`);
+  const publicHexPath = path.join(homeDir, 'public.hex');
+
+  // grava com permissões seguras para a privada
+  safeWriteFileSync(privateKeyPath, nsec, 0o600);
+  safeWriteFileSync(privateHexPath, privateKeyHex, 0o600);
+
+  // publica em permissões mais abertas
+  safeWriteFileSync(npubPath, npub, 0o644);
+  safeWriteFileSync(publicHexPath, publicKeyHex, 0o644);
+
+  console.log(`\n${green}${t.keys_saved_to}${reset}`);
+  console.log(`${cyan}${t.private_key_path}:${reset} ${privateKeyPath}`);
+  console.log(`${cyan}${t.private_hex_path}:${reset} ${privateHexPath}`);
+  console.log(`${cyan}${t.public_npub_path}:${reset} ${npubPath}`);
+  console.log(`${cyan}${t.public_hex_path}:${reset} ${publicHexPath}`);
 }
 
 function generateRandomKeys() {
@@ -121,13 +143,19 @@ function generateRandomKeys() {
   const nsec = nip19.nsecEncode(privateKeyHex);
   const npub = nip19.npubEncode(publicKeyHex);
 
-  console.log(`\n${cyan}${t.private_key_hex}:${reset} ${privateKeyHex}\n${cyan}${t.nsec}:${reset} ${nsec}\n${cyan}${t.npub}:${reset} ${npub}`);
-  return { nsec, npub };
+  console.log(`\n${cyan}${t.private_key_hex}:${reset} ${privateKeyHex}`);
+  console.log(`${cyan}${t.public_key_hex}:${reset} ${publicKeyHex}`);
+  console.log(`${cyan}${t.nsec}:${reset} ${nsec}`);
+  console.log(`${cyan}${t.npub}:${reset} ${npub}`);
+  return { nsec, npub, privateKeyHex, publicKeyHex };
 }
 
 function generateFromSeed() {
+  // nip06.generateSeedWords may return string or array depending on environment;
+  // we normalize for display.
   const mnemonic = nip06.generateSeedWords();
-  // suporte a implementações que retornem hex string ou Uint8Array
+  const mnemonicStr = ensureMnemonicString(mnemonic);
+
   let privateKeyRaw = nip06.privateKeyFromSeedWords(mnemonic);
   const privateKeyHex = toHexIfNeeded(privateKeyRaw);
   const publicKeyHex = getPublicKey(privateKeyHex);
@@ -136,15 +164,19 @@ function generateFromSeed() {
   const npub = nip19.npubEncode(publicKeyHex);
 
   console.log(`\n${yellow}------------------------------------------------------${reset}`);
-  console.log(`${cyan}${t.seed_phrase_title}${reset}\n${green}${ensureMnemonicString(mnemonic)}${reset}`);
+  console.log(`${cyan}${t.seed_phrase_title}${reset}\n${green}${mnemonicStr}${reset}`);
   console.log(`\n${redBold}${t.seed_warning}${reset}`);
   console.log(`${yellow}------------------------------------------------------${reset}`);
-  console.log(`\n${cyan}${t.private_key_hex}:${reset} ${privateKeyHex}\n${cyan}${t.nsec}:${reset} ${nsec}\n${cyan}${t.npub}:${reset} ${npub}`);
-  return { nsec, npub };
+
+  console.log(`\n${cyan}${t.private_key_hex}:${reset} ${privateKeyHex}`);
+  console.log(`${cyan}${t.public_key_hex}:${reset} ${publicKeyHex}`);
+  console.log(`${cyan}${t.nsec}:${reset} ${nsec}`);
+  console.log(`${cyan}${t.npub}:${reset} ${npub}`);
+  return { nsec, npub, privateKeyHex, publicKeyHex };
 }
 
 function generateVanityKeys(prefix) {
-  console.log(cyan + t.vanity_searching.replace('{}', prefix) + reset);
+  console.log(cyan + t.vanity_searching.replace("{}", prefix) + reset);
   const targetStart = `npub1${prefix}`;
   for (let attempts = 1; ; attempts++) {
     if (attempts % 10000 === 0) process.stdout.write(`\r${cyan}${t.vanity_attempts}: ${attempts.toLocaleString()}${reset}`);
@@ -159,8 +191,12 @@ function generateVanityKeys(prefix) {
       console.log(green + t.vanity_found.replace('{}', attempts.toLocaleString()) + reset);
 
       const nsec = nip19.nsecEncode(privateKeyHex);
-      console.log(`\n${cyan}${t.private_key_hex}:${reset} ${privateKeyHex}\n${cyan}${t.nsec}:${reset} ${nsec}\n${cyan}${t.npub}:${reset} ${npub}`);
-      return { nsec, npub };
+
+      console.log(`\n${cyan}${t.private_key_hex}:${reset} ${privateKeyHex}`);
+      console.log(`${cyan}${t.public_key_hex}:${reset} ${publicKeyHex}`);
+      console.log(`${cyan}${t.nsec}:${reset} ${nsec}`);
+      console.log(`${cyan}${t.npub}:${reset} ${npub}`);
+      return { nsec, npub, privateKeyHex, publicKeyHex };
     }
   }
 }
@@ -169,23 +205,23 @@ function verifyKey(key) {
   try {
     const decoded = nip19.decode(key.trim());
     let data = decoded.data;
-    // se data não for string, converte para hex quando for Buffer/Uint8Array
     if (typeof data !== 'string') {
       data = toHexIfNeeded(data);
     }
-    console.log(`\n${green}${t.verify_valid}${reset}\n${cyan}${t.verify_type}:${reset} ${decoded.type}\n${cyan}${t.verify_hex}:${reset} ${data}`);
+    console.log(`\n${green}${t.verify_valid}${reset}`);
+    console.log(`${cyan}${t.verify_type}:${reset} ${decoded.type}`);
+    console.log(`${cyan}${t.verify_hex}:${reset} ${data}`);
   } catch (error) {
     console.error(`\n${red}${t.verify_invalid}${reset}`);
   }
 }
 
-// --- MAIN MENU LOGIC ---
+// --- MAIN MENU ---
 async function mainMenu() {
   const { lang } = await inquirer.prompt([
     {
       type: 'list',
       name: 'lang',
-      // manter mensagem bilingue pra ficar claro antes da escolha
       message: `${locales.en.lang_choice} / ${locales.pt.lang_choice}`,
       choices: ['English', 'Português']
     }
@@ -208,13 +244,13 @@ async function mainMenu() {
     switch (action) {
       case 'generate':
         keys = generateRandomKeys();
-        saveKeys(keys.nsec, keys.npub);
+        saveKeys(keys.nsec, keys.npub, keys.privateKeyHex, keys.publicKeyHex);
         break;
       case 'generate_seed':
         keys = generateFromSeed();
-        saveKeys(keys.nsec, keys.npub);
+        saveKeys(keys.nsec, keys.npub, keys.privateKeyHex, keys.publicKeyHex);
         break;
-      case 'vanity':
+      case 'vanity': {
         const { prefix } = await inquirer.prompt({
           type: 'input',
           name: 'prefix',
@@ -222,12 +258,14 @@ async function mainMenu() {
           validate: (i) => /^[a-z0-9]+$/.test(i) ? true : t.vanity_validate
         });
         keys = generateVanityKeys(prefix);
-        saveKeys(keys.nsec, keys.npub);
+        saveKeys(keys.nsec, keys.npub, keys.privateKeyHex, keys.publicKeyHex);
         break;
-      case 'verify':
+      }
+      case 'verify': {
         const { key } = await inquirer.prompt({ type: 'input', name: 'key', message: t.verify_prompt });
         verifyKey(key);
         break;
+      }
       case 'exit':
         console.log(`\n${green}${t.exit_message}${reset}`);
         return;
@@ -237,5 +275,9 @@ async function mainMenu() {
   }
 }
 
-mainMenu();
+// Run
+mainMenu().catch(err => {
+  console.error('\n' + red + 'Fatal error:' + reset, err);
+  process.exit(1);
+});
 
