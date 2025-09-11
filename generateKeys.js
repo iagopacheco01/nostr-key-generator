@@ -4,11 +4,12 @@
 //  Version: 1.0.3
 //  Description: CLI tool for generating, verifying and saving
 //  Nostr keys (bech32 + hex). Secure defaults for saved files.
-//  Author: Iago Pacheco (corrected)
+//  Author: Iago Pacheco
 //  License: MIT
 //
 // ==========================================================
 
+// This import is 100% compatible with nostr-tools@1.17.0
 import inquirer from 'inquirer';
 import { getPublicKey, nip19, nip06 } from 'nostr-tools';
 import { randomBytes } from 'crypto';
@@ -93,6 +94,14 @@ const locales = {
 
 let t = locales.en;
 
+// --- BANNER ---
+function showBanner() {
+  console.log('\n' + '='.repeat(50));
+  console.log(`${green}       🔑  NostraKey  🔑${reset}`);
+  console.log(`${yellow}--- Command-Line Nostr Key Tool ---${reset}`);
+  console.log('='.repeat(50) + '\n');
+}
+
 // --- HELPERS ---
 function toHexIfNeeded(value) {
   if (typeof value === 'string') return value;
@@ -107,7 +116,6 @@ function ensureMnemonicString(m) {
 }
 
 function safeWriteFileSync(filePath, content, mode = 0o600) {
-  // cria pasta se necessário (no caso do usuário ter homeDir especial)
   const dir = path.dirname(filePath);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   fs.writeFileSync(filePath, content, { mode });
@@ -115,16 +123,13 @@ function safeWriteFileSync(filePath, content, mode = 0o600) {
 
 // --- LOGIC FUNCTIONS ---
 function saveKeys(nsec, npub, privateKeyHex, publicKeyHex) {
-  const privateKeyPath = path.join(homeDir, 'private.key'); // nsec (bech32)
-  const privateHexPath = path.join(homeDir, 'private.hex'); // private key hex (sensitive)
+  const privateKeyPath = path.join(homeDir, 'private.key');
+  const privateHexPath = path.join(homeDir, 'private.hex');
   const npubPath = path.join(homeDir, 'public.npub');
   const publicHexPath = path.join(homeDir, 'public.hex');
 
-  // grava com permissões seguras para a privada
   safeWriteFileSync(privateKeyPath, nsec, 0o600);
   safeWriteFileSync(privateHexPath, privateKeyHex, 0o600);
-
-  // publica em permissões mais abertas
   safeWriteFileSync(npubPath, npub, 0o644);
   safeWriteFileSync(publicHexPath, publicKeyHex, 0o644);
 
@@ -139,7 +144,6 @@ function generateRandomKeys() {
   const privateKeyBytes = randomBytes(32);
   const privateKeyHex = Buffer.from(privateKeyBytes).toString('hex');
   const publicKeyHex = getPublicKey(privateKeyHex);
-
   const nsec = nip19.nsecEncode(privateKeyHex);
   const npub = nip19.npubEncode(publicKeyHex);
 
@@ -151,8 +155,6 @@ function generateRandomKeys() {
 }
 
 function generateFromSeed() {
-  // nip06.generateSeedWords may return string or array depending on environment;
-  // we normalize for display.
   const mnemonic = nip06.generateSeedWords();
   const mnemonicStr = ensureMnemonicString(mnemonic);
 
@@ -218,6 +220,8 @@ function verifyKey(key) {
 
 // --- MAIN MENU ---
 async function mainMenu() {
+  showBanner(); // exibe o banner no início
+
   const { lang } = await inquirer.prompt([
     {
       type: 'list',
