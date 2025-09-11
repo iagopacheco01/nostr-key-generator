@@ -1,14 +1,14 @@
 {
   "name": "nostr-keys",
   "version": "1.0.0",
-  "description": "",
+  "description": "A simple Node.js script to generate Nostr keys and save them securely to local files.",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Iago Pacheco <contact@iagopacheco.tech>",
   "license": "ISC",
   "dependencies": {
     "@noble/hashes": "^2.0.0",
