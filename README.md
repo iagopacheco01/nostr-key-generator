@@ -1,4 +1,4 @@
-# 🔑  CODEX - A Command-Line Nostr Key Tool
+# 🔑  NostraKey - A Command-Line Nostr Key Tool
 
 [![Node.js](https://img.shields.io/badge/Node.js-v18+-green)](https://nodejs.org/)
 [![npm](https://img.shields.io/badge/npm-latest-blue)](https://www.npmjs.com/)
