@@ -1,23 +1,13 @@
-/*
-  ___ ___ _________ ___
- |\ _ \ __\ |\ _ \ __\
- | |_) )__ )| |_) )__ )
- | ,__/\___/| ,__/\___/
- |_| |____| |_| |____|
- 
- CODEX - A Command-Line Nostr Key Tool
-*/
 
 // ==========================================================
 //
-//   CODEX: Nostr Key Tool
-//
-//   Version: 1.0.0 (codex-release)
-//   Description: A comprehensive command-line tool for
-//     managing Nostr keys, including generation, verification,
-//     and secure saving.
-//   Author: Iago Pacheco
-//   License: MIT 
+//  NostraKey - A Command-Line Nostr Key Tool
+//  Version: 1.0.0 (NostraKey -release)
+//  Description: A comprehensive command-line tool for
+//  managing Nostr keys, including generation, verification,
+//  and secure saving.
+//  Author: Iago Pacheco
+//  License: MIT 
 //
 // ==========================================================
 
