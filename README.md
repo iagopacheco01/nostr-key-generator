@@ -80,7 +80,11 @@ The files will be saved in the current directory.
 nostr-key-generator/
 ├── generateKeys.js      # Main script
 ├── package.json         # Project dependencies and information
-└── README.md            # Project documentation
+├── package-lock.json    # Locked versions of dependencies
+├── README.md            # Project documentation
+└── locale/              # Folder for language files
+    ├── en.json          # English translations
+    └── pt.json          # Portuguese translations
 ```
 
 ## 📝 Notes
